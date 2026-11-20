@@ -42,3 +42,6 @@ yarn-error.*
 
 # Skia web runtime, copied from node_modules by setup-skia-web
 public/canvaskit.wasm
+
+# Google Play service account key (used by eas submit) — never commit
+google-play-service-account.json

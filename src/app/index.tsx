@@ -162,6 +162,10 @@ export default function Home() {
           </Disclosure>
         </Panel>
       </View>
+
+      <Pressable accessibilityRole="link" onPress={() => router.push('/privacy')} style={styles.footer}>
+        <Muted style={styles.small}>Privacy policy</Muted>
+      </Pressable>
     </Screen>
   );
 }
@@ -274,4 +278,5 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   step: { fontSize: 14 },
+  footer: { alignSelf: 'center', marginTop: 28, padding: 8 },
 });

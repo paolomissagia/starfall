@@ -369,6 +369,10 @@ const styles = StyleSheet.create({
     gap: 18,
     paddingHorizontal: 16,
     paddingBottom: 10,
+    // Rocks enter from underneath the HUD instead of passing through its text.
+    backgroundColor: 'rgba(5, 6, 15, 0.86)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(140, 150, 255, 0.10)',
   },
   hudLabel: { fontSize: 11, letterSpacing: 1.3 },
   hudValue: { fontSize: 20, fontVariant: ['tabular-nums'] },

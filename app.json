@@ -19,7 +19,12 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -45,6 +50,7 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "description": "A falling-words typing game for studying flashcards. Import Anki, CSV or TSV decks and type the answers before they hit the ground."
   }
 }

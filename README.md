@@ -31,6 +31,8 @@ npx eas-cli@latest submit -p android                       # upload to Google Pl
 
 The profiles are in `eas.json`. The app id is `com.paolomissagia.starfall`, set in `app.json`.
 
+**Publishing on Google Play:** see [`store/PLAY_STORE.md`](store/PLAY_STORE.md) for the listing text, graphics, Data safety and content rating answers, and step-by-step release instructions. The privacy policy is served at `/privacy`.
+
 ## Decks
 
 Import a deck from the home screen. On Android you choose a file; on the web you drop or choose one. You can also paste text.
