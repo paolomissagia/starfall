@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#05060f" />
+    <title>Starfall</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M22 4 10 18' stroke='%23ffb15c' stroke-width='5' stroke-linecap='round' opacity='.6'/%3E%3Ccircle cx='10' cy='21' r='7' fill='%23776459' stroke='%23ffb15c' stroke-width='2'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="sky" aria-hidden="true"></div>
+
+    <!-- HOME -->
+    <main id="screen-home" class="screen active">
+      <header class="brand">
+        <h1><span class="brand-mark" aria-hidden="true"></span>Starfall</h1>
+        <p>Words are falling from the sky. Type the answer before they reach the ground.</p>
+      </header>
+
+      <div class="home-grid">
+        <section class="panel">
+          <h2>Your decks</h2>
+          <ul id="deck-list" class="deck-list"></ul>
+          <p id="deck-empty" class="muted">No decks yet. Import a file to get started, or try the sample deck.</p>
+        </section>
+
+        <section class="panel">
+          <h2>Add a deck</h2>
+          <label id="dropzone" class="dropzone" tabindex="0">
+            <input type="file" id="file-input" accept=".txt,.csv,.tsv,text/plain,text/csv,text/tab-separated-values" hidden />
+            <span class="dropzone-icon" aria-hidden="true">⇪</span>
+            <strong>Drop a file here</strong>
+            <span>or click to choose one</span>
+            <small>Anki plain-text export (.txt), CSV or TSV</small>
+          </label>
+
+          <details class="paste">
+            <summary>Or paste your cards</summary>
+            <textarea id="paste-input" rows="6" placeholder="One card per line: term, then a tab (or comma), then the definition&#10;hola	hello&#10;gracias	thank you"></textarea>
+            <button id="paste-import" class="btn secondary" type="button">Import pasted cards</button>
+          </details>
+
+          <button id="sample-btn" class="btn ghost" type="button">Try the sample deck</button>
+
+          <details class="help">
+            <summary>How do I export from Anki?</summary>
+            <ol>
+              <li>In Anki, open <b>Browse</b> and select the deck (or the cards) you want.</li>
+              <li>Choose <b>File → Export</b> (or <b>Notes → Export Notes</b>).</li>
+              <li>Pick <b>Notes in Plain Text (.txt)</b>. Turning off “Include HTML and media references” gives the cleanest result.</li>
+              <li>Drop the exported file here. The first field becomes the front, the second the back.</li>
+            </ol>
+          </details>
+        </section>
+      </div>
+    </main>
+
+    <!-- IMPORT PREVIEW -->
+    <main id="screen-import" class="screen">
+      <section class="panel narrow">
+        <h2>Check your deck</h2>
+        <label class="field">
+          <span>Deck name</span>
+          <input id="import-name" type="text" maxlength="80" />
+        </label>
+        <p id="import-summary" class="muted"></p>
+        <div class="table-wrap">
+          <table class="preview-table">
+            <thead><tr><th>Front</th><th>Back</th></tr></thead>
+            <tbody id="import-preview"></tbody>
+          </table>
+        </div>
+        <div class="row">
+          <button id="import-swap" class="btn ghost" type="button">⇄ Swap front and back</button>
+          <span class="spacer"></span>
+          <button id="import-cancel" class="btn secondary" type="button">Cancel</button>
+          <button id="import-save" class="btn primary" type="button">Save deck</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- SETUP -->
+    <main id="screen-setup" class="screen">
+      <section class="panel narrow">
+        <button id="setup-back" class="btn ghost back" type="button">← Decks</button>
+        <h2 id="setup-title"></h2>
+        <p id="setup-meta" class="muted"></p>
+
+        <fieldset class="options">
+          <legend>What falls, and what you type</legend>
+          <div class="segmented" id="opt-answer">
+            <label><input type="radio" name="answer" value="back" /><span>See front, type back</span></label>
+            <label><input type="radio" name="answer" value="front" /><span>See back, type front</span></label>
+            <label><input type="radio" name="answer" value="mixed" /><span>Mixed</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="options">
+          <legend>Starting speed</legend>
+          <div class="segmented" id="opt-level">
+            <label><input type="radio" name="level" value="1" /><span>Gentle</span></label>
+            <label><input type="radio" name="level" value="3" /><span>Brisk</span></label>
+            <label><input type="radio" name="level" value="6" /><span>Frantic</span></label>
+          </div>
+        </fieldset>
+
+        <label class="toggle">
+          <input type="checkbox" id="opt-lenient" />
+          <span>
+            <b>Forgiving answers</b>
+            <small>Ignore capitals, accents and punctuation, accept one typo, and accept any one of several answers separated by “,” or “;”.</small>
+          </span>
+        </label>
+
+        <button id="setup-start" class="btn primary big" type="button">Launch ▸</button>
+        <p class="muted small center">Press <kbd>Enter</kbd> to submit an answer, <kbd>Esc</kbd> to pause.<br />Stuck? Click a rock to peek at the answer (half points, and it goes on your review list).</p>
+      </section>
+    </main>
+
+    <!-- GAME -->
+    <main id="screen-game" class="screen game-screen">
+      <canvas id="game-canvas"></canvas>
+
+      <div class="hud">
+        <div class="hud-item"><small>Score</small><b id="hud-score">0</b></div>
+        <div class="hud-item"><small>Level</small><b id="hud-level">1</b>
+          <div class="level-bar"><div id="hud-level-bar"></div></div>
+        </div>
+        <div class="hud-item"><small>Streak</small><b id="hud-streak">0</b></div>
+        <div class="hud-item"><small>Shields</small><b id="hud-lives" class="lives"></b></div>
+        <button id="pause-btn" class="icon-btn" type="button" aria-label="Pause">❚❚</button>
+      </div>
+
+      <div id="levelup" class="levelup" aria-live="polite"></div>
+
+      <div id="correction" class="overlay" hidden>
+        <div class="card">
+          <p class="eyebrow danger">Impact!</p>
+          <p id="correction-prompt" class="correction-prompt"></p>
+          <p class="muted">The answer was</p>
+          <p id="correction-answer" class="correction-answer"></p>
+          <p class="muted small">Type it below to continue.</p>
+        </div>
+      </div>
+
+      <div id="pause" class="overlay" hidden>
+        <div class="card">
+          <h2>Paused</h2>
+          <div class="row center">
+            <button id="resume-btn" class="btn primary" type="button">Resume</button>
+            <button id="quit-btn" class="btn secondary" type="button">End run</button>
+          </div>
+        </div>
+      </div>
+
+      <form id="answer-form" class="answer-form" autocomplete="off">
+        <input id="answer-input" type="text" placeholder="Type the answer and press Enter" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" aria-label="Your answer" />
+      </form>
+    </main>
+
+    <!-- RESULTS -->
+    <main id="screen-results" class="screen">
+      <section class="panel narrow">
+        <p class="eyebrow">Run complete</p>
+        <p id="result-score" class="result-score">0</p>
+        <p id="result-best" class="muted center"></p>
+        <div class="stats">
+          <div><small>Level</small><b id="result-level"></b></div>
+          <div><small>Accuracy</small><b id="result-accuracy"></b></div>
+          <div><small>Best streak</small><b id="result-streak"></b></div>
+          <div><small>Time</small><b id="result-time"></b></div>
+        </div>
+        <div id="result-missed-wrap">
+          <h3>To review</h3>
+          <ul id="result-missed" class="missed-list"></ul>
+        </div>
+        <div class="row">
+          <button id="result-decks" class="btn ghost" type="button">← Decks</button>
+          <span class="spacer"></span>
+          <button id="result-practice" class="btn secondary" type="button"></button>
+          <button id="result-again" class="btn primary" type="button">Play again</button>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

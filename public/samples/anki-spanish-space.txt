@@ -1,0 +1,16 @@
+#separator:tab
+#html:true
+#deck column:3
+#tags column:4
+la luna	the moon	Languages::Spanish space words	space
+el sol	the sun	Languages::Spanish space words	space
+la estrella	the star	Languages::Spanish space words	space
+el planeta	the planet	Languages::Spanish space words	space
+la Tierra	(the) Earth	Languages::Spanish space words	space
+el cielo	the sky	Languages::Spanish space words	space
+el cometa	the comet	Languages::Spanish space words	space
+la nave espacial	the spaceship	Languages::Spanish space words	space
+"<b>el</b> astronauta"	the astronaut	Languages::Spanish space words	space
+el cohete	the rocket<br>(vehicle)	Languages::Spanish space words	space
+la galaxia	the galaxy	Languages::Spanish space words	space
+la órbita	the orbit	Languages::Spanish space words	space
