@@ -51,6 +51,12 @@
     "experiments": {
       "typedRoutes": true
     },
-    "description": "A falling-words typing game for studying flashcards. Import Anki, CSV or TSV decks and type the answers before they hit the ground."
+    "description": "A falling-words typing game for studying flashcards. Import Anki, CSV or TSV decks and type the answers before they hit the ground.",
+    "extra": {
+      "eas": {
+        "projectId": "75c1cebc-d1a5-4f2c-a510-4b89dff015e7"
+      }
+    },
+    "owner": "paolomissagia"
   }
 }
