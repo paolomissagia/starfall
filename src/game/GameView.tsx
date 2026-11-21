@@ -201,133 +201,137 @@ function Playfield({ cards, settings, onOver, fonts }: GameProps & { fonts: Font
 
   return (
     <KeyboardAvoidingView behavior="padding" style={styles.root}>
-      <View
-        ref={fieldRef}
-        style={StyleSheet.absoluteFill}
-        onLayout={onLayout}
-        onStartShouldSetResponder={() => true}
-        onResponderGrant={onPressCanvas}
-      >
-        <Canvas style={styles.canvas}>
-          <Picture picture={picture} />
-        </Canvas>
+      {/* KeyboardAvoidingView pads itself, but absolute children ignore padding (they sit on the padding
+          box). This in-flow view is what actually shrinks, so everything below is laid out inside it. */}
+      <View style={styles.stage}>
+        <View
+          ref={fieldRef}
+          style={StyleSheet.absoluteFill}
+          onLayout={onLayout}
+          onStartShouldSetResponder={() => true}
+          onResponderGrant={onPressCanvas}
+        >
+          <Canvas style={styles.canvas}>
+            <Picture picture={picture} />
+          </Canvas>
+        </View>
+
+        {(
+          <View style={[styles.hud, { paddingTop: insets.top + 10 }]}>
+            <HudItem label="Score" value={hud.score.toLocaleString()} />
+            <View>
+              <HudItem label="Level" value={String(hud.level)} />
+              <View style={styles.levelBar}>
+                <View style={[styles.levelFill, { width: `${Math.round(hud.levelProgress * 100)}%` }]} />
+              </View>
+            </View>
+            <HudItem label="Streak" value={hud.streak > 1 ? `×${hud.streak}` : String(hud.streak)} />
+            <View>
+              <Muted style={styles.hudLabel}>SHIELDS</Muted>
+              <View style={styles.shields}>
+                {Array.from({ length: hud.maxLives }, (_, i) => (
+                  <View key={i} style={[styles.shield, i >= hud.lives && styles.shieldLost]} />
+                ))}
+              </View>
+            </View>
+            <View style={{ flex: 1 }} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Pause"
+              onPress={pause}
+              style={styles.pauseBtn}
+              hitSlop={8}
+            >
+              <T weight="bold" style={{ fontSize: 13 }}>
+                ❚❚
+              </T>
+            </Pressable>
+          </View>
+        )}
+
+        <Animated.View
+          style={[
+            styles.levelUp,
+            {
+              opacity: levelAnim.interpolate({ inputRange: [0, 0.15, 0.7, 1], outputRange: [0, 1, 1, 0] }),
+              transform: [
+                { scale: levelAnim.interpolate({ inputRange: [0, 0.15, 0.7, 1], outputRange: [0.8, 1.05, 1, 1] }) },
+                { translateY: levelAnim.interpolate({ inputRange: [0, 0.7, 1], outputRange: [0, 0, -20] }) },
+              ],
+            },
+          ]}
+        >
+          <T weight="bold" style={styles.levelUpText}>
+            {levelText}
+          </T>
+        </Animated.View>
+
+        {correction && !paused && (
+          <View style={[styles.overlay, styles.passThrough]}>
+            <View style={styles.card}>
+              <T weight="semibold" style={[styles.eyebrow, { color: colors.danger }]}>
+                IMPACT!
+              </T>
+              <T weight="semibold" style={styles.correctionPrompt}>
+                {correction.prompt}
+              </T>
+              <Muted style={styles.center}>The answer was</Muted>
+              <T weight="bold" style={styles.correctionAnswer}>
+                {correction.answer}
+              </T>
+              <Muted style={[styles.center, { fontSize: 14 }]}>Type it below to continue.</Muted>
+            </View>
+          </View>
+        )}
+
+        {paused && (
+          <View style={styles.overlay}>
+            <View style={styles.card}>
+              <T weight="semibold" style={styles.pausedTitle}>
+                Paused
+              </T>
+              <View style={styles.pauseActions}>
+                <Button variant="primary" label="Resume" onPress={resume} />
+                <Button
+                  label="End run"
+                  onPress={() => {
+                    setPaused(false);
+                    engine.quit();
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+        )}
+
+        <Animated.View
+          onLayout={onAnswerLayout}
+          style={[
+            styles.answerWrap,
+            { bottom: Math.max(insets.bottom, 12) + 8, transform: [{ translateX: shakeAnim }] },
+          ]}
+        >
+          <TextInput
+            ref={inputRef}
+            value={answer}
+            onChangeText={setAnswer}
+            onSubmitEditing={submit}
+            submitBehavior="submit"
+            autoFocus
+            placeholder={correction ? CORRECTION_PLACEHOLDER : ANSWER_PLACEHOLDER}
+            placeholderTextColor="rgba(154,160,200,0.8)"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="off"
+            spellCheck={false}
+            importantForAutofill="no"
+            returnKeyType="send"
+            enterKeyHint="send"
+            accessibilityLabel="Your answer"
+            style={[styles.answer, correction && styles.answerCorrecting]}
+          />
+        </Animated.View>
       </View>
-
-      {(
-        <View style={[styles.hud, { paddingTop: insets.top + 10 }]}>
-          <HudItem label="Score" value={hud.score.toLocaleString()} />
-          <View>
-            <HudItem label="Level" value={String(hud.level)} />
-            <View style={styles.levelBar}>
-              <View style={[styles.levelFill, { width: `${Math.round(hud.levelProgress * 100)}%` }]} />
-            </View>
-          </View>
-          <HudItem label="Streak" value={hud.streak > 1 ? `×${hud.streak}` : String(hud.streak)} />
-          <View>
-            <Muted style={styles.hudLabel}>SHIELDS</Muted>
-            <View style={styles.shields}>
-              {Array.from({ length: hud.maxLives }, (_, i) => (
-                <View key={i} style={[styles.shield, i >= hud.lives && styles.shieldLost]} />
-              ))}
-            </View>
-          </View>
-          <View style={{ flex: 1 }} />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Pause"
-            onPress={pause}
-            style={styles.pauseBtn}
-            hitSlop={8}
-          >
-            <T weight="bold" style={{ fontSize: 13 }}>
-              ❚❚
-            </T>
-          </Pressable>
-        </View>
-      )}
-
-      <Animated.View
-        style={[
-          styles.levelUp,
-          {
-            opacity: levelAnim.interpolate({ inputRange: [0, 0.15, 0.7, 1], outputRange: [0, 1, 1, 0] }),
-            transform: [
-              { scale: levelAnim.interpolate({ inputRange: [0, 0.15, 0.7, 1], outputRange: [0.8, 1.05, 1, 1] }) },
-              { translateY: levelAnim.interpolate({ inputRange: [0, 0.7, 1], outputRange: [0, 0, -20] }) },
-            ],
-          },
-        ]}
-      >
-        <T weight="bold" style={styles.levelUpText}>
-          {levelText}
-        </T>
-      </Animated.View>
-
-      {correction && !paused && (
-        <View style={[styles.overlay, styles.passThrough]}>
-          <View style={styles.card}>
-            <T weight="semibold" style={[styles.eyebrow, { color: colors.danger }]}>
-              IMPACT!
-            </T>
-            <T weight="semibold" style={styles.correctionPrompt}>
-              {correction.prompt}
-            </T>
-            <Muted style={styles.center}>The answer was</Muted>
-            <T weight="bold" style={styles.correctionAnswer}>
-              {correction.answer}
-            </T>
-            <Muted style={[styles.center, { fontSize: 14 }]}>Type it below to continue.</Muted>
-          </View>
-        </View>
-      )}
-
-      {paused && (
-        <View style={styles.overlay}>
-          <View style={styles.card}>
-            <T weight="semibold" style={styles.pausedTitle}>
-              Paused
-            </T>
-            <View style={styles.pauseActions}>
-              <Button variant="primary" label="Resume" onPress={resume} />
-              <Button
-                label="End run"
-                onPress={() => {
-                  setPaused(false);
-                  engine.quit();
-                }}
-              />
-            </View>
-          </View>
-        </View>
-      )}
-
-      <Animated.View
-        onLayout={onAnswerLayout}
-        style={[
-          styles.answerWrap,
-          { bottom: Math.max(insets.bottom, 12) + 8, transform: [{ translateX: shakeAnim }] },
-        ]}
-      >
-        <TextInput
-          ref={inputRef}
-          value={answer}
-          onChangeText={setAnswer}
-          onSubmitEditing={submit}
-          submitBehavior="submit"
-          autoFocus
-          placeholder={correction ? CORRECTION_PLACEHOLDER : ANSWER_PLACEHOLDER}
-          placeholderTextColor="rgba(154,160,200,0.8)"
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoComplete="off"
-          spellCheck={false}
-          importantForAutofill="no"
-          returnKeyType="send"
-          enterKeyHint="send"
-          accessibilityLabel="Your answer"
-          style={[styles.answer, correction && styles.answerCorrecting]}
-        />
-      </Animated.View>
     </KeyboardAvoidingView>
   );
 }
@@ -354,6 +358,7 @@ function measureWidth(font: SkFont, s: string): number {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, overflow: 'hidden' },
+  stage: { flex: 1 },
   loading: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
   passThrough: { pointerEvents: 'none' },
   // Skia's web Canvas needs a single style object (no arrays).

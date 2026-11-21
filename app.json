@@ -57,6 +57,12 @@
         "projectId": "75c1cebc-d1a5-4f2c-a510-4b89dff015e7"
       }
     },
-    "owner": "paolomissagia"
+    "owner": "paolomissagia",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/75c1cebc-d1a5-4f2c-a510-4b89dff015e7"
+    }
   }
 }
