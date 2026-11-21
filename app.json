@@ -46,15 +46,6 @@
           "resizeMode": "contain",
           "backgroundColor": "#05060f"
         }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "enableMinifyInReleaseBuilds": false,
-            "enableShrinkResourcesInReleaseBuilds": false
-          }
-        }
       ]
     ],
     "experiments": {

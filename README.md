@@ -29,6 +29,8 @@ npx eas-cli@latest build -p android --profile production   # .aab for the Play S
 npx eas-cli@latest submit -p android                       # upload to Google Play
 ```
 
+**Skia is pinned to 2.13.1 on purpose.** 2.14.0, the version Expo SDK 58 recommends, has an Android build regression: its native build peaks at about 8 GB, and the build gets killed on EAS's default worker with "Gradle build daemon disappeared unexpectedly" ([react-native-skia#4272](https://github.com/wcandillon/react-native-skia/issues/4272)). The fix ([#4284](https://github.com/wcandillon/react-native-skia/pull/4284)) is merged but not released yet. Upgrade once a 2.x release includes it, and remove the `expo.install.exclude` entry in `package.json`.
+
 The profiles are in `eas.json`. The app id is `com.paolomissagia.starfall`, set in `app.json`.
 
 **Publishing on Google Play:** see [`store/PLAY_STORE.md`](store/PLAY_STORE.md) for the listing text, graphics, Data safety and content rating answers, and step-by-step release instructions. The privacy policy is served at `/privacy`.
