@@ -91,7 +91,7 @@ function setDecks(decks: Deck[]): void {
   void persist(decks);
 }
 
-export function newId(): string {
+function newId(): string {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 }
 
@@ -116,7 +116,7 @@ export function setPending(pending: PendingImport | null): void {
 /** Records a finished run and updates the deck's best score. */
 export function finishRun(run: Omit<LastRun, 'newBest'>): void {
   const deck = state.decks.find((d) => d.id === run.deckId);
-  const newBest = !!deck && !run.practice && run.result.score > deck.best && run.result.score > 0;
+  const newBest = !!deck && !run.practice && run.result.score > deck.best;
   if (deck && newBest) updateDeck(deck.id, { best: run.result.score });
   set({ lastRun: { ...run, newBest } });
 }

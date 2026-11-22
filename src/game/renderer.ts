@@ -16,6 +16,7 @@ import {
   type SkShader,
 } from '@shopify/react-native-skia';
 
+import { colors } from '../ui/theme';
 import { clamp, LINE_HEIGHT, PAD_Y, REVEAL_SECONDS, type Engine, type Meteor } from './engine';
 
 /**
@@ -67,8 +68,12 @@ export class Renderer {
   private sizedFor = '';
   /** Pictures stay alive for two frames so the one on screen is never freed. */
   private retired: SkPicture[] = [];
+  /** Distance from the top of a text line to its baseline, centring the glyphs in LINE_HEIGHT. */
+  private readonly baselineOffset: number;
 
   constructor(private readonly fonts: Fonts) {
+    const metrics = fonts.text.getMetrics();
+    this.baselineOffset = (LINE_HEIGHT - (metrics.descent - metrics.ascent)) / 2 - metrics.ascent;
     for (const p of [this.fill, this.stroke, this.glow, this.additive, this.shaded]) p.setAntiAlias(true);
     this.stroke.setStyle(PaintStyle.Stroke);
     this.additive.setBlendMode(BlendMode.Plus);
@@ -147,7 +152,7 @@ export class Renderer {
     this.bg = Skia.Shader.MakeLinearGradient(
       Skia.Point(0, 0),
       Skia.Point(0, h),
-      [color('#05060f'), color('#0d0f2b'), color('#241a45')],
+      [color(colors.bg), color('#0d0f2b'), color('#241a45')],
       [0, 0.55, 1],
       TileMode.Clamp,
     );
@@ -330,7 +335,7 @@ export class Renderer {
 
     if (revealed) {
       const t = clamp(m.revealLeft / REVEAL_SECONDS, 0, 1);
-      this.fill.setColor(color('#4fd6c4'));
+      this.fill.setColor(color(colors.teal));
       this.fill.setAlphaf(0.85);
       canvas.drawRect(Skia.XYWHRect(radius, h - 4, (w - radius * 2) * t, 2), this.fill);
       this.fill.setColor(color('#9ff0e4'));
@@ -339,10 +344,8 @@ export class Renderer {
     }
 
     // Text with a soft shadow for legibility.
-    const metrics = this.fonts.text.getMetrics();
-    const baselineOffset = (LINE_HEIGHT - (metrics.descent - metrics.ascent)) / 2 - metrics.ascent;
     lines.forEach((line, i) => {
-      const y = PAD_Y + LINE_HEIGHT * i + baselineOffset;
+      const y = PAD_Y + LINE_HEIGHT * i + this.baselineOffset;
       this.glow.setMaskFilter(this.blur(2));
       this.glow.setColor(color('#000000'));
       this.glow.setAlphaf(0.6);

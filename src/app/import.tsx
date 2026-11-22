@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { addDeck, setPending, useStore } from '../state/store';
-import { Button, Muted, Panel, T } from '../ui/kit';
+import { Button, fieldStyle, H2, Muted, Panel, T } from '../ui/kit';
 import { Screen } from '../ui/Screen';
 import { colors, fonts } from '../ui/theme';
 
@@ -30,15 +30,13 @@ export default function ImportPreview() {
   return (
     <Screen narrow>
       <Panel>
-        <T weight="semibold" style={styles.h2}>
-          Check your deck
-        </T>
+        <H2>Check your deck</H2>
         <Muted style={styles.label}>Deck name</Muted>
         <TextInput
           value={name}
           onChangeText={setName}
           maxLength={80}
-          style={styles.input}
+          style={[fieldStyle, styles.input]}
           placeholderTextColor={colors.muted}
           returnKeyType="done"
         />
@@ -79,16 +77,10 @@ export default function ImportPreview() {
 }
 
 const styles = StyleSheet.create({
-  h2: { fontSize: 20, marginBottom: 12 },
   label: { fontSize: 13, marginBottom: 4 },
   input: {
-    color: colors.text,
     fontFamily: fonts.regular,
     fontSize: 16,
-    backgroundColor: colors.field,
-    borderColor: colors.panelBorder,
-    borderWidth: 1,
-    borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },

@@ -53,11 +53,11 @@ export interface GameEvents {
   over(result: GameResult): void;
 }
 
-export type SubmitResult = 'correct' | 'wrong' | 'empty' | 'ignored';
+type SubmitResult = 'correct' | 'wrong' | 'empty' | 'ignored';
 export type State = 'playing' | 'correction' | 'paused' | 'over';
 
 /** Measures the rendered width of a single line of rock text. */
-export type MeasureText = (text: string) => number;
+type MeasureText = (text: string) => number;
 
 export interface Face {
   lines: string[];
@@ -118,23 +118,23 @@ export interface Planet {
   top: number;
 }
 
-export const MAX_LIVES = 3;
-export const PER_LEVEL = 8;
+const MAX_LIVES = 3;
+const PER_LEVEL = 8;
 export const REVEAL_SECONDS = 2.5;
 export const TEXT_SIZE = 17;
 export const LINE_HEIGHT = 22;
-export const PAD_X = 16;
+const PAD_X = 16;
 export const PAD_Y = 11;
 /** Where rocks start: their bottom edge this far above the top of the screen. */
 const START_BOTTOM = -30;
 
-export function fallSeconds(level: number, answerLength: number): number {
+function fallSeconds(level: number, answerLength: number): number {
   const base = Math.max(4.5, 15 * Math.pow(0.88, level - 1));
   const extra = Math.min(4, Math.max(0, answerLength - 10) * 0.15);
   return base + extra;
 }
 
-export function maxOnScreen(level: number): number {
+function maxOnScreen(level: number): number {
   if (level < 3) return 1;
   if (level < 5) return 2;
   if (level < 8) return 3;
@@ -186,14 +186,12 @@ export class Engine {
   private picker: Picker;
   private nextId = 1;
 
-  private events: GameEvents;
+  private events: GameEvents = NO_EVENTS;
 
   constructor(
     private readonly options: GameOptions,
-    events: GameEvents | null,
     private readonly measure: MeasureText,
   ) {
-    this.events = events ?? NO_EVENTS;
     this.level = Math.max(1, options.startLevel);
     this.picker = new Picker(options.cards.length);
   }
@@ -231,15 +229,11 @@ export class Engine {
     if (this.state === 'paused') this.state = this.stateBeforePause;
   }
 
-  quit(): void {
-    this.finish();
-  }
-
   submit(text: string): SubmitResult {
     if (this.state === 'correction') {
       if (!isCorrect(text, this.correctionAnswer, this.options.lenient)) return 'wrong';
       this.events.correctionDone();
-      if (this.lives <= 0) this.finish();
+      if (this.lives <= 0) this.quit();
       else this.state = 'playing';
       return 'correct';
     }
@@ -542,7 +536,8 @@ export class Engine {
     }
   }
 
-  private finish(): void {
+  /** Ends the run and reports the result (also used when the last shield is lost). */
+  quit(): void {
     if (this.state === 'over') return;
     this.state = 'over';
     this.events.over({
@@ -608,7 +603,7 @@ export function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
 }
 
-export function wrapText(measure: MeasureText, text: string, maxWidth: number): string[] {
+function wrapText(measure: MeasureText, text: string, maxWidth: number): string[] {
   const words = text.split(' ');
   const lines: string[] = [];
   let line = '';

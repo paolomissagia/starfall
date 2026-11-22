@@ -2,7 +2,7 @@ import { SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fon
 import { Canvas, createPicture, Picture, useFont, type SkFont } from '@shopify/react-native-skia';
 import * as Haptics from 'expo-haptics';
 import { useKeepAwake } from 'expo-keep-awake';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -42,7 +42,7 @@ export default function GameView(props: GameProps) {
   return <Playfield {...props} fonts={{ text, small, score }} />;
 }
 
-const haptics = Platform.OS !== 'web';
+const isNative = Platform.OS !== 'web';
 const ANSWER_PLACEHOLDER = 'Type the answer';
 const CORRECTION_PLACEHOLDER = 'Type it to continue';
 
@@ -62,7 +62,6 @@ function Playfield({ cards, settings, onOver, fonts }: GameProps & { fonts: Font
     () =>
       new Engine(
         { cards, answerWith: settings.answerWith, startLevel: settings.startLevel, lenient: settings.lenient },
-        null,
         (s) => measureWidth(fonts.text, s),
       ),
   );
@@ -76,10 +75,10 @@ function Playfield({ cards, settings, onOver, fonts }: GameProps & { fonts: Font
       levelUp: (level) => {
         setLevelText(`Level ${level}`);
         levelAnim.setValue(0);
-        Animated.timing(levelAnim, { toValue: 1, duration: 1600, useNativeDriver: Platform.OS !== 'web' }).start();
+        Animated.timing(levelAnim, { toValue: 1, duration: 1600, useNativeDriver: isNative }).start();
       },
       feedback: (kind) => {
-        if (!haptics) return;
+        if (!isNative) return;
         if (kind === 'impact') void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         else if (kind === 'wrong') void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         else if (kind === 'correct') void Haptics.selectionAsync();
@@ -118,26 +117,25 @@ function Playfield({ cards, settings, onOver, fonts }: GameProps & { fonts: Font
     setPaused(false);
     inputRef.current?.focus();
   };
-  const togglePause = () => (engine.paused ? resume() : pause());
+  const onBackground = useEffectEvent(pause);
+  const onTogglePause = useEffectEvent(() => (engine.paused ? resume() : pause()));
 
   // Pause when the app goes to the background or the tab is hidden.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
-      if (s !== 'active') pause();
+      if (s !== 'active') onBackground();
     });
     return () => sub.remove();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Android back button pauses instead of leaving mid-run.
   useEffect(() => {
     if (Platform.OS !== 'android') return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      togglePause();
+      onTogglePause();
       return true;
     });
     return () => sub.remove();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Esc pauses on web/desktop.
@@ -146,13 +144,12 @@ function Playfield({ cards, settings, onOver, fonts }: GameProps & { fonts: Font
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        togglePause();
+        onTogglePause();
       }
     };
     // Capture phase: the focused answer box stops keydown from bubbling up to window.
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // The play area and the answer box are measured separately; the planet sits just above the box.
@@ -191,7 +188,7 @@ function Playfield({ cards, settings, onOver, fonts }: GameProps & { fonts: Font
       shakeAnim.setValue(0);
       Animated.sequence(
         [8, -8, 6, -6, 0].map((toValue) =>
-          Animated.timing(shakeAnim, { toValue, duration: 55, useNativeDriver: Platform.OS !== 'web' }),
+          Animated.timing(shakeAnim, { toValue, duration: 55, useNativeDriver: isNative }),
         ),
       ).start();
     }
@@ -216,38 +213,36 @@ function Playfield({ cards, settings, onOver, fonts }: GameProps & { fonts: Font
           </Canvas>
         </View>
 
-        {(
-          <View style={[styles.hud, { paddingTop: insets.top + 10 }]}>
-            <HudItem label="Score" value={hud.score.toLocaleString()} />
-            <View>
-              <HudItem label="Level" value={String(hud.level)} />
-              <View style={styles.levelBar}>
-                <View style={[styles.levelFill, { width: `${Math.round(hud.levelProgress * 100)}%` }]} />
-              </View>
+        <View style={[styles.hud, { paddingTop: insets.top + 10 }]}>
+          <HudItem label="Score" value={hud.score.toLocaleString()} />
+          <View>
+            <HudItem label="Level" value={String(hud.level)} />
+            <View style={styles.levelBar}>
+              <View style={[styles.levelFill, { width: `${Math.round(hud.levelProgress * 100)}%` }]} />
             </View>
-            <HudItem label="Streak" value={hud.streak > 1 ? `×${hud.streak}` : String(hud.streak)} />
-            <View>
-              <Muted style={styles.hudLabel}>SHIELDS</Muted>
-              <View style={styles.shields}>
-                {Array.from({ length: hud.maxLives }, (_, i) => (
-                  <View key={i} style={[styles.shield, i >= hud.lives && styles.shieldLost]} />
-                ))}
-              </View>
-            </View>
-            <View style={{ flex: 1 }} />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Pause"
-              onPress={pause}
-              style={styles.pauseBtn}
-              hitSlop={8}
-            >
-              <T weight="bold" style={{ fontSize: 13 }}>
-                ❚❚
-              </T>
-            </Pressable>
           </View>
-        )}
+          <HudItem label="Streak" value={hud.streak > 1 ? `×${hud.streak}` : String(hud.streak)} />
+          <View>
+            <Muted style={styles.hudLabel}>SHIELDS</Muted>
+            <View style={styles.shields}>
+              {Array.from({ length: hud.maxLives }, (_, i) => (
+                <View key={i} style={[styles.shield, i >= hud.lives && styles.shieldLost]} />
+              ))}
+            </View>
+          </View>
+          <View style={{ flex: 1 }} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Pause"
+            onPress={pause}
+            style={styles.pauseBtn}
+            hitSlop={8}
+          >
+            <T weight="bold" style={{ fontSize: 13 }}>
+              ❚❚
+            </T>
+          </Pressable>
+        </View>
 
         <Animated.View
           style={[

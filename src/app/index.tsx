@@ -4,10 +4,12 @@ import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { parseDeck } from '../core/parser';
 import { SAMPLE_CARDS, SAMPLE_NAME } from '../core/sample';
-import { pickDeckFile, type PickedFile } from '../files/pickDeckFile';
+import { pickDeckFile } from '../files/pickDeckFile';
+import type { PickedFile } from '../files/shared';
+import { useFileDrop } from '../files/useFileDrop';
 import { deleteDeck, setPending, useStore } from '../state/store';
 import { confirm } from '../ui/confirm';
-import { Button, Muted, Panel, T } from '../ui/kit';
+import { Button, fieldStyle, H2, Muted, Panel, T } from '../ui/kit';
 import { Screen } from '../ui/Screen';
 import { colors } from '../ui/theme';
 import { toast } from '../ui/toast';
@@ -31,13 +33,17 @@ function importPicked(file: PickedFile): void {
   importText(file.text, fallback);
 }
 
+function showFileError(e: unknown): void {
+  toast(e instanceof Error ? e.message : 'Could not read that file.');
+}
+
 export default function Home() {
   const decks = useStore((s) => s.decks);
   const saveFailed = useStore((s) => s.saveFailed);
   const [pasteOpen, setPasteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [pasted, setPasted] = useState('');
-  const dragging = useWebFileDrop(importPicked);
+  const dragging = useFileDrop(importPicked, showFileError);
 
   useEffect(() => {
     if (saveFailed) toast('Saving failed, so new decks may be lost when you close the app.');
@@ -48,7 +54,7 @@ export default function Home() {
       const file = await pickDeckFile();
       if (file) importPicked(file);
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Could not read that file.');
+      showFileError(e);
     }
   };
 
@@ -70,9 +76,7 @@ export default function Home() {
 
       <View style={styles.grid}>
         <Panel style={styles.col}>
-          <T weight="semibold" style={styles.h2}>
-            Your decks
-          </T>
+          <H2>Your decks</H2>
           {decks.length === 0 ? (
             <Muted>No decks yet. Import a file to get started, or try the sample deck.</Muted>
           ) : (
@@ -107,9 +111,7 @@ export default function Home() {
         </Panel>
 
         <Panel style={styles.col}>
-          <T weight="semibold" style={styles.h2}>
-            Add a deck
-          </T>
+          <H2>Add a deck</H2>
           <Pressable
             accessibilityRole="button"
             onPress={() => void choose()}
@@ -128,7 +130,7 @@ export default function Home() {
               onChangeText={setPasted}
               placeholder={'One card per line: term, then a tab (or comma), then the definition\nhola, hello\ngracias, thank you'}
               placeholderTextColor={colors.muted}
-              style={styles.textarea}
+              style={[fieldStyle, styles.textarea]}
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -193,42 +195,6 @@ function Disclosure({
   );
 }
 
-/** On web, lets the player drop a deck file anywhere on the home screen. */
-function useWebFileDrop(onFile: (file: PickedFile) => void): boolean {
-  const [dragging, setDragging] = useState(false);
-  useEffect(() => {
-    if (Platform.OS !== 'web') return;
-    const over = (e: DragEvent) => {
-      e.preventDefault();
-      setDragging(true);
-    };
-    const leave = (e: DragEvent) => {
-      if (!e.relatedTarget) setDragging(false);
-    };
-    const drop = async (e: DragEvent) => {
-      e.preventDefault();
-      setDragging(false);
-      const file = e.dataTransfer?.files[0];
-      if (!file) return;
-      try {
-        const { readBrowserFile } = await import('../files/pickDeckFile.web');
-        onFile(await readBrowserFile(file));
-      } catch (err) {
-        toast(err instanceof Error ? err.message : 'Could not read that file.');
-      }
-    };
-    window.addEventListener('dragover', over);
-    window.addEventListener('dragleave', leave);
-    window.addEventListener('drop', drop);
-    return () => {
-      window.removeEventListener('dragover', over);
-      window.removeEventListener('dragleave', leave);
-      window.removeEventListener('drop', drop);
-    };
-  }, [onFile]);
-  return dragging;
-}
-
 const styles = StyleSheet.create({
   brand: { alignItems: 'center', marginTop: 12, marginBottom: 28 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
@@ -247,7 +213,6 @@ const styles = StyleSheet.create({
   tagline: { fontSize: 17, textAlign: 'center', maxWidth: 520, marginTop: 4 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start' },
   col: { flexGrow: 1, flexBasis: 320 },
-  h2: { fontSize: 20, marginBottom: 12 },
   small: { fontSize: 13 },
   deck: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, backgroundColor: colors.subtle },
   deckMain: { flex: 1, paddingHorizontal: 14, paddingVertical: 12, minHeight: 56 },
@@ -267,11 +232,6 @@ const styles = StyleSheet.create({
   disclosure: { paddingVertical: 6 },
   textarea: {
     minHeight: 120,
-    color: colors.text,
-    backgroundColor: colors.field,
-    borderColor: colors.panelBorder,
-    borderWidth: 1,
-    borderRadius: 10,
     padding: 12,
     fontFamily: Platform.select({ web: 'ui-monospace, monospace', default: 'monospace' }),
     fontSize: 14,

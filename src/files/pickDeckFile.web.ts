@@ -1,14 +1,9 @@
 import * as DocumentPicker from 'expo-document-picker';
 
-export interface PickedFile {
-  name: string;
-  text: string;
-}
-
-const MAX_BYTES = 10 * 1024 * 1024;
+import { MAX_BYTES, TOO_LARGE_MESSAGE, type PickedFile } from './shared';
 
 export async function readBrowserFile(file: File): Promise<PickedFile> {
-  if (file.size > MAX_BYTES) throw new Error('That file is larger than 10 MB. Is it really a text export?');
+  if (file.size > MAX_BYTES) throw new Error(TOO_LARGE_MESSAGE);
   return { name: file.name, text: await file.text() };
 }
 

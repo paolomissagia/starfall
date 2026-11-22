@@ -104,7 +104,7 @@ export function parseDeck(input: string): ParseResult {
 }
 
 /** Picks the separator that splits the most lines into 2+ fields. */
-export function detectSeparator(body: string): string {
+function detectSeparator(body: string): string {
   const sample = body
     .split('\n')
     .filter((line) => line.trim() !== '')
@@ -122,7 +122,7 @@ export function detectSeparator(body: string): string {
 }
 
 /** Splits text into rows of fields, honouring double-quoted fields. */
-export function splitRows(text: string, sep: string): string[][] {
+function splitRows(text: string, sep: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = '';

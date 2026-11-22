@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { updateDeck, useStore } from '../../state/store';
 import type { AnswerWith, DeckSettings } from '../../state/types';
-import { Button, Muted, Panel, Segmented, T } from '../../ui/kit';
+import { BackButton, Button, Muted, Panel, Segmented, T } from '../../ui/kit';
 import { Screen } from '../../ui/Screen';
 import { colors } from '../../ui/theme';
 
@@ -18,12 +18,7 @@ export default function DeckSetup() {
   return (
     <Screen narrow>
       <Panel>
-        <Button
-          variant="ghost"
-          label="← Decks"
-          style={styles.back}
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-        />
+        <BackButton label="← Decks" />
         <T weight="semibold" style={styles.title}>
           {deck.name}
         </T>
@@ -80,7 +75,6 @@ export default function DeckSetup() {
 }
 
 const styles = StyleSheet.create({
-  back: { alignSelf: 'flex-start', marginLeft: -8, marginTop: -8, marginBottom: 6 },
   title: { fontSize: 24, marginBottom: 2 },
   legend: { fontSize: 13, marginTop: 20, marginBottom: 8 },
   toggle: { flexDirection: 'row', gap: 12, marginTop: 22, marginBottom: 18, alignItems: 'flex-start' },

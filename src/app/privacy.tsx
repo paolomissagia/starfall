@@ -1,7 +1,6 @@
-import { router } from 'expo-router';
 import { StyleSheet } from 'react-native';
 
-import { Button, Muted, Panel, T } from '../ui/kit';
+import { BackButton, Muted, Panel, T } from '../ui/kit';
 import { Screen } from '../ui/Screen';
 
 const UPDATED = '20 November 2026';
@@ -45,12 +44,7 @@ export default function Privacy() {
   return (
     <Screen narrow>
       <Panel>
-        <Button
-          variant="ghost"
-          label="← Back"
-          style={styles.back}
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-        />
+        <BackButton label="← Back" />
         <T weight="bold" style={styles.title}>
           Privacy policy
         </T>
@@ -68,7 +62,6 @@ export default function Privacy() {
 }
 
 const styles = StyleSheet.create({
-  back: { alignSelf: 'flex-start', marginLeft: -8, marginTop: -8, marginBottom: 6 },
   title: { fontSize: 26 },
   updated: { fontSize: 13, marginBottom: 8 },
   section: { marginTop: 14, lineHeight: 23 },

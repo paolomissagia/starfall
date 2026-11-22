@@ -8,7 +8,7 @@
  * answers of 6+ characters.
  */
 
-export function normalize(s: string, lenient: boolean): string {
+function normalize(s: string, lenient: boolean): string {
   let t = s.normalize('NFKC').replace(/\s+/g, ' ').trim();
   if (!lenient) return t;
   t = t.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
@@ -17,7 +17,7 @@ export function normalize(s: string, lenient: boolean): string {
   return stripped || t;
 }
 
-export function acceptedAnswers(answer: string, lenient: boolean): string[] {
+function acceptedAnswers(answer: string, lenient: boolean): string[] {
   const out = new Set<string>([answer]);
   if (lenient) {
     for (const part of answer.split(/\s*;\s*|\s*,\s*|\s+\/\s+/)) {

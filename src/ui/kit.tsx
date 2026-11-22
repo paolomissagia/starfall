@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import {
   Pressable,
@@ -18,6 +19,15 @@ export function T({ style, weight = 'regular', ...props }: TextProps & { weight?
 
 export function Muted({ style, ...props }: TextProps & { weight?: keyof typeof fonts }) {
   return <T {...props} style={[styles.muted, style]} />;
+}
+
+/** Section heading inside a panel. */
+export function H2({ children }: { children: ReactNode }) {
+  return (
+    <T weight="semibold" style={styles.h2}>
+      {children}
+    </T>
+  );
 }
 
 export function Panel({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
@@ -54,6 +64,18 @@ export function Button({
   );
 }
 
+/** Top-left back link; falls back to the home screen when there is no history (e.g. a deep link on web). */
+export function BackButton({ label }: { label: string }) {
+  return (
+    <Button
+      variant="ghost"
+      label={label}
+      style={styles.back}
+      onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+    />
+  );
+}
+
 export function Segmented<V extends string | number>({
   options,
   value,
@@ -85,9 +107,22 @@ export function Segmented<V extends string | number>({
   );
 }
 
+/** Shared look of text inputs; screens add their own font, size and padding. */
+export const fieldStyle = StyleSheet.create({
+  base: {
+    color: colors.text,
+    backgroundColor: colors.field,
+    borderColor: colors.panelBorder,
+    borderWidth: 1,
+    borderRadius: 10,
+  },
+}).base;
+
 const styles = StyleSheet.create({
   text: { color: colors.text, fontSize: 16 },
   muted: { color: colors.muted },
+  h2: { fontSize: 20, marginBottom: 12 },
+  back: { alignSelf: 'flex-start', marginLeft: -8, marginTop: -8, marginBottom: 6 },
   panel: {
     backgroundColor: colors.panel,
     borderColor: colors.panelBorder,

@@ -18,7 +18,8 @@ function setup() {
     over: vi.fn(),
   };
   // 9px per character is close enough to the real font for layout tests.
-  const engine = new Engine({ cards, answerWith: 'back', startLevel: 1, lenient: true }, events, (s) => s.length * 9);
+  const engine = new Engine({ cards, answerWith: 'back', startLevel: 1, lenient: true }, (s) => s.length * 9);
+  engine.listen(events);
   engine.resize(400, 800);
   return { engine, events };
 }
